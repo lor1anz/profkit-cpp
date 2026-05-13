@@ -1,0 +1,2 @@
+add_executable(profkit_overhead overhead.cpp)
+target_link_libraries(profkit_overhead PRIVATE profkit::profkit)

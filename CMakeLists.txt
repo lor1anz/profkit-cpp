@@ -7,6 +7,7 @@ project(profkit-cpp
 
 option(PROFKIT_ENABLE "Enable profkit instrumentation" ON)
 option(PROFKIT_BUILD_EXAMPLES "Build profkit examples" ON)
+option(PROFKIT_BUILD_BENCHMARKS "Build profkit benchmarks" ON)
 
 add_library(profkit
     src/profiler.cpp
@@ -27,4 +28,8 @@ target_compile_definitions(profkit PUBLIC
 
 if(PROFKIT_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(PROFKIT_BUILD_BENCHMARKS)
+    add_subdirectory(benchmark)
 endif()
