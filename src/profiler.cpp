@@ -116,10 +116,11 @@ class ProfilerStorage {
 
  private:
   void PrintTable(const std::vector<ScopeStat>& total_stats,
-                const std::vector<std::uint64_t>& max_thread_total_ns) const {
+                  const std::vector<std::uint64_t>& max_thread_total_ns) const {
     std::cout << "\nProfiler report\n";
     std::cout << std::string(145, '=') << "\n\n";
 
+    // clang-format off
     std::cout << std::left << std::setw(45) << "scope"
               << std::right << std::setw(10) << "calls"
               << std::setw(14) << "wall ms"
@@ -129,6 +130,7 @@ class ProfilerStorage {
               << std::setw(14) << "max ms"
               << std::setw(18) << "max thread ms"
               << '\n';
+    // clang-format on
 
     std::cout << std::string(145, '-') << '\n';
 
@@ -146,9 +148,9 @@ class ProfilerStorage {
           static_cast<double>(stat.total_ns) / static_cast<double>(stat.calls) / 1'000'000.0;
       const double min_ms = static_cast<double>(stat.min_ns) / 1'000'000.0;
       const double max_ms = static_cast<double>(stat.max_ns) / 1'000'000.0;
-      const double max_thread_ms =
-          static_cast<double>(max_thread_total_ns[id]) / 1'000'000.0;
+      const double max_thread_ms = static_cast<double>(max_thread_total_ns[id]) / 1'000'000.0;
 
+      // clang-format off
       std::cout << std::left << std::setw(45) << scopes_[id].name
                 << std::right << std::setw(10) << stat.calls
                 << std::setw(14) << std::fixed << std::setprecision(3) << wall_ms
@@ -158,6 +160,7 @@ class ProfilerStorage {
                 << std::setw(14) << max_ms
                 << std::setw(18) << max_thread_ms
                 << '\n';
+      // clang-format on
     }
   }
 
@@ -179,8 +182,7 @@ ProfilerStorage& Storage() {
 std::uint64_t NowNs() {
   static const auto start = std::chrono::steady_clock::now();
   return static_cast<std::uint64_t>(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-          std::chrono::steady_clock::now() - start)
+      std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start)
           .count());
 }
 

@@ -10,7 +10,7 @@ using ScopeId = std::uint32_t;
 ScopeId RegisterScope(std::string_view name);
 
 class ScopeTimer {
-public:
+ public:
   explicit ScopeTimer(ScopeId scope_id);
   ~ScopeTimer();
 
@@ -22,14 +22,14 @@ public:
   ScopeTimer(ScopeTimer&&) = delete;
   ScopeTimer& operator=(ScopeTimer&&) = delete;
 
-private:
+ private:
   ScopeId scope_id_;
   std::uint64_t start_ns_;
   bool stopped_ = false;
 };
 
 class Session {
-public:
+ public:
   explicit Session(std::string_view name);
   ~Session();
 
@@ -39,7 +39,7 @@ public:
   Session(Session&&) = delete;
   Session& operator=(Session&&) = delete;
 
-private:
+ private:
   ScopeTimer timer_;
 };
 
@@ -66,16 +66,15 @@ void DumpAndReset();
 
 #if defined(PROFKIT_ENABLE) && PROFKIT_ENABLE
 
-#define PROF_SCOPE(name)                                                       \
-static const ::profkit::ScopeId PROFKIT_CONCAT(profkit_scope_id_, __LINE__) = \
-::profkit::RegisterScope(name);                                          \
-::profkit::ScopeTimer PROFKIT_CONCAT(profkit_timer_, __LINE__)(              \
-PROFKIT_CONCAT(profkit_scope_id_, __LINE__))
+#define PROF_SCOPE(name)                                                        \
+  static const ::profkit::ScopeId PROFKIT_CONCAT(profkit_scope_id_, __LINE__) = \
+      ::profkit::RegisterScope(name);                                           \
+  ::profkit::ScopeTimer PROFKIT_CONCAT(profkit_timer_,                          \
+                                       __LINE__)(PROFKIT_CONCAT(profkit_scope_id_, __LINE__))
 
 #define PROF_FUNCTION() PROF_SCOPE(PROFKIT_FUNCTION_NAME)
 
-#define PROF_SESSION(name) \
-::profkit::Session PROFKIT_CONCAT(profkit_session_, __LINE__)(name)
+#define PROF_SESSION(name) ::profkit::Session PROFKIT_CONCAT(profkit_session_, __LINE__)(name)
 
 #else
 
