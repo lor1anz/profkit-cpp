@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <cstdint>
 #include <string_view>
 
 namespace profkit {
@@ -23,7 +22,7 @@ class ScopeTimer {
 
  private:
   ScopeId scope_id_;
-  std::chrono::steady_clock::time_point start_;
+  std::uint64_t start_ns_;
 };
 
 void PrintReport();
