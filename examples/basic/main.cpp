@@ -17,7 +17,7 @@ double Compute() {
 	{
 		PROF_SCOPE("random_loop");
 
-		for (std::uint32_t i = 0; i < 42'000'000; ++i) {
+		for (std::uint32_t i = 0; i < 10'000'000; ++i) {
 			sum += dis(gen) * (static_cast<double>(i) / INT32_MAX);
 		}
 	}
