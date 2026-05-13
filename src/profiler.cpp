@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -56,7 +56,6 @@ class ProfilerStorage {
 
     scopes_.push_back(ScopeInfo{.name = key});
     ids_by_name_.emplace(scopes_.back().name, id);
-    finished_stats_.push_back(ScopeStat{});
 
     return id;
   }
@@ -66,41 +65,49 @@ class ProfilerStorage {
     return next_thread_id_++;
   }
 
-  std::size_t ScopeCount() const {
+  void AddFinishedThreadStats(std::vector<ScopeStat> stats) {
     std::lock_guard lock(mutex_);
-    return scopes_.size();
-  }
-
-  void MergeFinishedThreadStats(const std::vector<ScopeStat>& stats) {
-    std::lock_guard lock(mutex_);
-
-    if (finished_stats_.size() < stats.size()) {
-      finished_stats_.resize(stats.size());
-    }
-
-    for (ScopeId id = 0; id < stats.size(); ++id) {
-      MergeStat(finished_stats_[id], stats[id]);
-    }
+    finished_thread_stats_.push_back(std::move(stats));
   }
 
   void PrintReportWithCurrentThreadStats(const std::vector<ScopeStat>& current_thread_stats) {
     std::lock_guard lock(mutex_);
 
-    std::vector<ScopeStat> total_stats = finished_stats_;
+    std::vector<std::vector<ScopeStat>> all_thread_stats = finished_thread_stats_;
+    all_thread_stats.push_back(current_thread_stats);
 
-    if (total_stats.size() < current_thread_stats.size()) {
-      total_stats.resize(current_thread_stats.size());
+    std::vector<ScopeStat> total_stats(scopes_.size());
+    std::vector<std::uint64_t> max_thread_total_ns(scopes_.size(), 0);
+
+    for (const auto& thread_stats : all_thread_stats) {
+      for (ScopeId id = 0; id < thread_stats.size() && id < scopes_.size(); ++id) {
+        const auto& stat = thread_stats[id];
+
+        if (stat.calls == 0) {
+          continue;
+        }
+
+        MergeStat(total_stats[id], stat);
+        max_thread_total_ns[id] = std::max(max_thread_total_ns[id], stat.total_ns);
+      }
     }
 
-    for (ScopeId id = 0; id < current_thread_stats.size(); ++id) {
-      MergeStat(total_stats[id], current_thread_stats[id]);
-    }
+    PrintTable(total_stats, max_thread_total_ns);
+  }
 
+ private:
+  void PrintTable(const std::vector<ScopeStat>& total_stats,
+                  const std::vector<std::uint64_t>& max_thread_total_ns) const {
     std::cout << "\nProfkit report\n";
-    std::cout << "==============\n";
+    std::cout << "==============\n\n";
+
+    std::cout << std::left << std::setw(40) << "scope" << std::right << std::setw(12) << "calls"
+              << std::setw(14) << "total ms" << std::setw(14) << "avg us" << std::setw(14)
+              << "min us" << std::setw(14) << "max us" << std::setw(18) << "max thread ms" << '\n';
+
+    std::cout << std::string(126, '-') << '\n';
 
     for (ScopeId id = 0; id < scopes_.size(); ++id) {
-      const auto& scope = scopes_[id];
       const auto& stat = total_stats[id];
 
       if (stat.calls == 0) {
@@ -112,23 +119,21 @@ class ProfilerStorage {
           static_cast<double>(stat.total_ns) / static_cast<double>(stat.calls) / 1'000.0;
       const double min_us = static_cast<double>(stat.min_ns) / 1'000.0;
       const double max_us = static_cast<double>(stat.max_ns) / 1'000.0;
+      const double max_thread_ms = static_cast<double>(max_thread_total_ns[id]) / 1'000'000.0;
 
-      std::cout << scope.name << '\n';
-      std::cout << "  calls:    " << stat.calls << '\n';
-      std::cout << "  total ms: " << total_ms << '\n';
-      std::cout << "  avg us:   " << avg_us << '\n';
-      std::cout << "  min us:   " << min_us << '\n';
-      std::cout << "  max us:   " << max_us << '\n';
+      std::cout << std::left << std::setw(40) << scopes_[id].name << std::right << std::setw(12)
+                << stat.calls << std::setw(14) << std::fixed << std::setprecision(3) << total_ms
+                << std::setw(14) << avg_us << std::setw(14) << min_us << std::setw(14) << max_us
+                << std::setw(18) << max_thread_ms << '\n';
     }
   }
 
- private:
   mutable std::mutex mutex_;
 
   std::vector<ScopeInfo> scopes_;
   std::unordered_map<std::string, ScopeId> ids_by_name_;
 
-  std::vector<ScopeStat> finished_stats_;
+  std::vector<std::vector<ScopeStat>> finished_thread_stats_;
 
   std::uint32_t next_thread_id_ = 0;
 };
@@ -147,7 +152,7 @@ struct ThreadState {
   ThreadState() : thread_id(Storage().RegisterThread()) {}
 
   ~ThreadState() {
-    Storage().MergeFinishedThreadStats(stats);
+    Storage().AddFinishedThreadStats(std::move(stats));
   }
 
   void AddSample(ScopeId id, std::uint64_t elapsed_ns) {
