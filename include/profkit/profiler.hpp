@@ -5,6 +5,11 @@
 
 namespace profkit {
 
+enum class TimeUnit {
+  kMilliseconds,
+  kSeconds,
+};
+
 using ScopeId = std::uint32_t;
 
 ScopeId RegisterScope(std::string_view name);
@@ -43,6 +48,9 @@ class Session {
   ScopeTimer timer_;
 };
 
+void SetTimeUnit(TimeUnit unit);
+TimeUnit GetTimeUnit();
+
 void PrintReport();
 void Reset();
 void DumpAndReset();
@@ -55,6 +63,9 @@ void DumpAndReset();
 #define PROF_DUMP() ::profkit::PrintReport()
 #define PROF_RESET() ::profkit::Reset()
 #define PROF_DUMP_AND_RESET() ::profkit::DumpAndReset()
+
+#define PROF_USE_SECONDS() ::profkit::SetTimeUnit(::profkit::TimeUnit::kSeconds)
+#define PROF_USE_MILLISECONDS() ::profkit::SetTimeUnit(::profkit::TimeUnit::kMilliseconds)
 
 #if defined(__GNUC__) || defined(__clang__)
 #define PROFKIT_FUNCTION_NAME __PRETTY_FUNCTION__

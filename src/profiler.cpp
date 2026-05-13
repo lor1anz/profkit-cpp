@@ -114,21 +114,33 @@ class ProfilerStorage {
     finished_thread_stats_.clear();
   }
 
+  void SetTimeUnit(TimeUnit unit) {
+    std::lock_guard lock(mutex_);
+    time_unit_ = unit;
+  }
+
+  TimeUnit GetTimeUnit() const {
+    std::lock_guard lock(mutex_);
+    return time_unit_;
+  }
+
  private:
   void PrintTable(const std::vector<ScopeStat>& total_stats,
                   const std::vector<std::uint64_t>& max_thread_total_ns) const {
     std::cout << "\nProfiler report\n";
     std::cout << std::string(145, '=') << "\n\n";
 
+    const std::string unit = TimeUnitSuffix();
+
     // clang-format off
     std::cout << std::left << std::setw(45) << "scope"
               << std::right << std::setw(10) << "calls"
-              << std::setw(14) << "wall ms"
-              << std::setw(16) << "cpu total ms"
-              << std::setw(14) << "avg ms"
-              << std::setw(14) << "min ms"
-              << std::setw(14) << "max ms"
-              << std::setw(18) << "max thread ms"
+              << std::setw(14) << ("wall " + unit)
+              << std::setw(16) << ("cpu total " + unit)
+              << std::setw(14) << ("avg " + unit)
+              << std::setw(14) << ("min " + unit)
+              << std::setw(14) << ("max " + unit)
+              << std::setw(18) << ("max thread " + unit)
               << '\n';
     // clang-format on
 
@@ -141,27 +153,49 @@ class ProfilerStorage {
         continue;
       }
 
-      const double wall_ms =
-          static_cast<double>(stat.last_end_ns - stat.first_start_ns) / 1'000'000.0;
-      const double cpu_total_ms = static_cast<double>(stat.total_ns) / 1'000'000.0;
-      const double avg_ms =
-          static_cast<double>(stat.total_ns) / static_cast<double>(stat.calls) / 1'000'000.0;
-      const double min_ms = static_cast<double>(stat.min_ns) / 1'000'000.0;
-      const double max_ms = static_cast<double>(stat.max_ns) / 1'000'000.0;
-      const double max_thread_ms = static_cast<double>(max_thread_total_ns[id]) / 1'000'000.0;
+      const double wall_time = ConvertNs(stat.last_end_ns - stat.first_start_ns);
+      const double cpu_total_time = ConvertNs(stat.total_ns);
+      const double avg_time = ConvertNs(stat.total_ns / stat.calls);
+      const double min_time = ConvertNs(stat.min_ns);
+      const double max_time = ConvertNs(stat.max_ns);
+      const double max_thread_time = ConvertNs(max_thread_total_ns[id]);
 
       // clang-format off
       std::cout << std::left << std::setw(45) << scopes_[id].name
                 << std::right << std::setw(10) << stat.calls
-                << std::setw(14) << std::fixed << std::setprecision(3) << wall_ms
-                << std::setw(16) << cpu_total_ms
-                << std::setw(14) << avg_ms
-                << std::setw(14) << min_ms
-                << std::setw(14) << max_ms
-                << std::setw(18) << max_thread_ms
+                << std::setw(14) << std::fixed << std::setprecision(3) << wall_time
+                << std::setw(16) << cpu_total_time
+                << std::setw(14) << avg_time
+                << std::setw(14) << min_time
+                << std::setw(14) << max_time
+                << std::setw(18) << max_thread_time
                 << '\n';
       // clang-format on
     }
+  }
+
+  double ConvertNs(std::uint64_t ns) const {
+    switch (time_unit_) {
+      case TimeUnit::kSeconds:
+        return static_cast<double>(ns) / 1'000'000'000.0;
+
+      case TimeUnit::kMilliseconds:
+        return static_cast<double>(ns) / 1'000'000.0;
+    }
+
+    return static_cast<double>(ns) / 1'000'000.0;
+  }
+
+  const char* TimeUnitSuffix() const {
+    switch (time_unit_) {
+      case TimeUnit::kSeconds:
+        return "s";
+
+      case TimeUnit::kMilliseconds:
+        return "ms";
+    }
+
+    return "ms";
   }
 
   mutable std::mutex mutex_;
@@ -172,6 +206,8 @@ class ProfilerStorage {
   std::vector<std::vector<ScopeStat>> finished_thread_stats_;
 
   std::uint32_t next_thread_id_ = 0;
+
+  TimeUnit time_unit_ = TimeUnit::kMilliseconds;
 };
 
 ProfilerStorage& Storage() {
@@ -260,4 +296,13 @@ void DumpAndReset() {
   PrintReport();
   Reset();
 }
+
+void SetTimeUnit(TimeUnit unit) {
+  Storage().SetTimeUnit(unit);
+}
+
+TimeUnit GetTimeUnit() {
+  return Storage().GetTimeUnit();
+}
+
 }  // namespace profkit
