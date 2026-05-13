@@ -66,7 +66,7 @@ class ProfilerStorage {
       return it->second;
     }
 
-    const ScopeId id = static_cast<ScopeId>(scopes_.size());
+    const auto id = static_cast<ScopeId>(scopes_.size());
 
     scopes_.push_back(ScopeInfo{.name = key});
     ids_by_name_.emplace(scopes_.back().name, id);
