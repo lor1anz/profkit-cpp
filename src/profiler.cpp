@@ -117,7 +117,7 @@ class ProfilerStorage {
 
     std::cout << std::left << std::setw(45) << "scope"
               << std::right << std::setw(10) << "calls"
-              << std::setw(14) << "global ms"
+              << std::setw(14) << "wall ms"
               << std::setw(16) << "cpu total ms"
               << std::setw(14) << "avg ms"
               << std::setw(14) << "min ms"
