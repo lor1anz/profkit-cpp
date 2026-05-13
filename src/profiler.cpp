@@ -217,7 +217,23 @@ ScopeId RegisterScope(std::string_view name) {
 ScopeTimer::ScopeTimer(ScopeId scope_id) : scope_id_(scope_id), start_ns_(NowNs()) {}
 
 ScopeTimer::~ScopeTimer() {
+  Stop();
+}
+
+void ScopeTimer::Stop() {
+  if (stopped_) {
+    return;
+  }
+
   CurrentThreadState().AddSample(scope_id_, start_ns_, NowNs());
+  stopped_ = true;
+}
+
+Session::Session(std::string_view name) : timer_(RegisterScope(name)) {}
+
+Session::~Session() {
+  timer_.Stop();
+  PrintReport();
 }
 
 void PrintReport() {

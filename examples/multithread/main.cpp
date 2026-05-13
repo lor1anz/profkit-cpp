@@ -28,6 +28,8 @@ double Compute(std::uint32_t iterations) {
 }
 
 int main() {
+  PROF_SESSION("global");
+
   constexpr std::uint32_t kThreads = 4;
   constexpr std::uint32_t kIterations = 10'000'000;
 
@@ -57,6 +59,5 @@ int main() {
   std::cout << std::fixed << std::setprecision(10);
   std::cout << "result: " << total << '\n';
 
-  PROF_DUMP();
   return 0;
 }

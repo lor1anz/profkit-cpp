@@ -26,11 +26,12 @@ double Compute() {
 }
 
 int main() {
+  PROF_SESSION("global");
+
 	const double result = Compute();
 
 	std::cout << std::fixed << std::setprecision(10);
 	std::cout << "result: " << result << '\n';
 
-  PROF_DUMP();
 	return 0;
 }
