@@ -109,6 +109,11 @@ class ProfilerStorage {
     PrintTable(total_stats, max_thread_total_ns);
   }
 
+  void Reset() {
+    std::lock_guard lock(mutex_);
+    finished_thread_stats_.clear();
+  }
+
  private:
   void PrintTable(const std::vector<ScopeStat>& total_stats,
                 const std::vector<std::uint64_t>& max_thread_total_ns) const {
@@ -208,6 +213,10 @@ ThreadState& CurrentThreadState() {
   return state;
 }
 
+void ResetCurrentThreadStats() {
+  CurrentThreadState().stats.clear();
+}
+
 }  // namespace
 
 ScopeId RegisterScope(std::string_view name) {
@@ -238,5 +247,15 @@ Session::~Session() {
 
 void PrintReport() {
   Storage().PrintReportWithCurrentThreadStats(CurrentThreadState().stats);
+}
+
+void Reset() {
+  Storage().Reset();
+  ResetCurrentThreadStats();
+}
+
+void DumpAndReset() {
+  PrintReport();
+  Reset();
 }
 }  // namespace profkit

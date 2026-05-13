@@ -44,6 +44,8 @@ private:
 };
 
 void PrintReport();
+void Reset();
+void DumpAndReset();
 
 }  // namespace profkit
 
@@ -51,6 +53,8 @@ void PrintReport();
 #define PROFKIT_CONCAT(a, b) PROFKIT_CONCAT_IMPL(a, b)
 
 #define PROF_DUMP() ::profkit::PrintReport()
+#define PROF_RESET() ::profkit::Reset()
+#define PROF_DUMP_AND_RESET() ::profkit::DumpAndReset()
 
 #if defined(__GNUC__) || defined(__clang__)
 #define PROFKIT_FUNCTION_NAME __PRETTY_FUNCTION__

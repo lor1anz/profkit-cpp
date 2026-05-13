@@ -26,17 +26,17 @@ double Compute() {
 }
 
 int main() {
-  PROF_SESSION("session 1");
-
   double result = 0.;
 
   {
-    PROF_SESSION("session 2");
+    PROF_SESSION("session 1");
     result += Compute();
   }
 
+  PROF_RESET();
+
   {
-    PROF_SESSION("session 3");
+    PROF_SESSION("session 2");
     result += Compute();
   }
 
