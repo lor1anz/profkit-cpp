@@ -9,10 +9,9 @@ namespace {
 volatile std::uint64_t sink = 0;
 
 std::uint64_t NowNs() {
-  return static_cast<std::uint64_t>(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-          std::chrono::steady_clock::now().time_since_epoch())
-          .count());
+  return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                        std::chrono::steady_clock::now().time_since_epoch())
+                                        .count());
 }
 
 void EmptyLoop(std::uint64_t iterations) {
@@ -43,12 +42,14 @@ void RunBenchmark(std::uint64_t iterations) {
   const auto profiled_ns = profiled_end - profiled_start;
   const auto overhead_ns = profiled_ns - empty_ns;
 
+  // clang-format off
   std::cout << "iterations:        " << iterations << '\n';
   std::cout << "empty loop ms:     " << static_cast<double>(empty_ns) / 1'000'000.0 << '\n';
   std::cout << "profiled loop ms:  " << static_cast<double>(profiled_ns) / 1'000'000.0 << '\n';
   std::cout << "overhead ms:       " << static_cast<double>(overhead_ns) / 1'000'000.0 << '\n';
   std::cout << "overhead ns/call:  "
             << static_cast<double>(overhead_ns) / static_cast<double>(iterations) << '\n';
+  // clang-format on
 
   PROF_DUMP();
 }
