@@ -7,3 +7,11 @@ target_link_libraries(profkit_basic PRIVATE profkit::profkit)
 target_link_libraries(profkit_multithread PRIVATE profkit::profkit)
 target_link_libraries(profkit_empty_dump PRIVATE profkit::profkit)
 target_link_libraries(profkit_multiple_sessions PRIVATE profkit::profkit)
+
+
+add_executable(profkit_single_include single_include/main.cpp)
+
+target_include_directories(profkit_single_include
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/single_include
+)
