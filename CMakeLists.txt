@@ -6,7 +6,7 @@ project(profkit-cpp
 )
 
 option(PROFKIT_ENABLE "Enable profkit instrumentation" ON)
-option(PROFKIT_BUILD_EXAMPLES "Build profkit examples" ON)
+option(PROFKIT_BUILD_EXAMPLES "Build profkit examples" OFF)
 option(PROFKIT_BUILD_BENCHMARKS "Build profkit benchmarks" OFF)
 
 add_library(profkit
