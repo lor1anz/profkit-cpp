@@ -185,6 +185,41 @@ The function name is automatically extracted using:
 
 ---
 
+## PROF_PUSH / PROF_POP
+
+Starts and ends a manual profiling scope.
+
+Use these macros to profile code regions that cannot be conveniently wrapped with scoped macros.
+
+```cpp
+void Compute() {
+    PROF_PUSH("compute");
+
+    do_some_work();
+
+    PROF_POP();
+}
+```
+
+`PROF_PUSH()` and `PROF_POP()` use a stack-based model and support nested scopes:
+
+```cpp
+PROF_PUSH("outer");
+
+PROF_PUSH("inner");
+Work();
+PROF_POP();
+
+PROF_POP();
+```
+
+Every `PROF_PUSH()` must have a matching `PROF_POP()`.
+
+`PROF_PUSH/POP` should be used inside an active profiling session.  
+If used outside a session, call `PROF_DUMP()` afterward to flush profiling data.
+
+---
+
 ## PROF_SESSION
 
 Creates a profiling session.
