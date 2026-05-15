@@ -1,6 +1,7 @@
 #include "profkit/profiler.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -14,6 +15,11 @@ namespace profkit {
 namespace {
 struct ScopeInfo {
   std::string name;
+};
+
+struct ActiveScope {
+  ScopeId id;
+  std::uint64_t start_ns;
 };
 
 struct ScopeStat {
@@ -244,6 +250,7 @@ struct ThreadState {
 
   std::uint32_t thread_id = 0;
   std::vector<ScopeStat> stats;
+  std::vector<ActiveScope> scope_stack;
 };
 
 ThreadState& CurrentThreadState() {
@@ -295,6 +302,25 @@ void Reset() {
 void DumpAndReset() {
   PrintReport();
   Reset();
+}
+
+void PushScope(ScopeId id) {
+  CurrentThreadState().scope_stack.push_back({.id = id, .start_ns = NowNs()});
+}
+
+void PopScope() {
+  auto& state = CurrentThreadState();
+
+  assert(!state.scope_stack.empty() && "PROF_POP called without PROF_PUSH");
+
+  if (state.scope_stack.empty()) {
+    return;
+  }
+
+  auto scope = state.scope_stack.back();
+  state.scope_stack.pop_back();
+
+  state.AddSample(scope.id, scope.start_ns, NowNs());
 }
 
 void SetTimeUnit(TimeUnit unit) {

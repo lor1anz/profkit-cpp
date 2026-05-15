@@ -55,6 +55,9 @@ void PrintReport();
 void Reset();
 void DumpAndReset();
 
+void PushScope(ScopeId id);
+void PopScope();
+
 }  // namespace profkit
 
 #define PROFKIT_CONCAT_IMPL(a, b) a##b
@@ -87,10 +90,19 @@ void DumpAndReset();
 
 #define PROF_SESSION(name) ::profkit::Session PROFKIT_CONCAT(profkit_session_, __LINE__)(name)
 
+#define PROF_PUSH(name)                                                         \
+  static const ::profkit::ScopeId PROFKIT_CONCAT(profkit_scope_id_, __LINE__) = \
+      ::profkit::RegisterScope(name);                                           \
+  ::profkit::PushScope(PROFKIT_CONCAT(profkit_scope_id_, __LINE__))
+
+#define PROF_POP() ::profkit::PopScope()
+
 #else
 
 #define PROF_SCOPE(name) static_cast<void>(0)
 #define PROF_FUNCTION() static_cast<void>(0)
 #define PROF_SESSION(name) static_cast<void>(0)
+#define PROF_PUSH(name) static_cast<void>(0)
+#define PROF_POP(name) static_cast<void>(0)
 
 #endif
