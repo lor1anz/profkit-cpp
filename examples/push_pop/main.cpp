@@ -6,7 +6,6 @@
 #include "profkit/profiler.hpp"
 
 double Compute() {
-
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<double> dis(0.0, 1.0);
