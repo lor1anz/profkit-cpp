@@ -238,6 +238,16 @@ struct ThreadState {
 
   ~ThreadState() {
     Storage().AddFinishedThreadStats(std::move(stats));
+
+    assert(scope_stack.empty() && "Unmatched PROF_PUSH/PROF_POP");
+
+    // clang-format off
+    if (!scope_stack.empty()) {
+      std::cerr << "profkit: "
+                << scope_stack.size()
+                << " scopes were not closed\n";
+    }
+    // clang-format on
   }
 
   void AddSample(ScopeId id, std::uint64_t start_ns, std::uint64_t end_ns) {
@@ -259,7 +269,9 @@ ThreadState& CurrentThreadState() {
 }
 
 void ResetCurrentThreadStats() {
-  CurrentThreadState().stats.clear();
+  auto& state = CurrentThreadState();
+  state.stats.clear();
+  state.scope_stack.clear();
 }
 
 }  // namespace
