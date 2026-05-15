@@ -106,8 +106,7 @@ Tested with:
 ## Configure
 
 ```bash
-cmake -S . -B build -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release
+cmake --preset production
 ```
 
 ---
@@ -115,7 +114,7 @@ cmake -S . -B build -G Ninja \
 ## Build
 
 ```bash
-cmake --build build
+cmake --build --preset production
 ```
 
 ---
@@ -202,20 +201,6 @@ int main() {
   Work();
 
   return 0;
-}
-```
-
-Nested sessions are supported.
-
-```cpp
-{
-  PROF_SESSION("phase 1");
-  RunPhase1();
-}
-
-{
-  PROF_SESSION("phase 2");
-  RunPhase2();
 }
 ```
 
@@ -365,8 +350,12 @@ The project contains a simple instrumentation overhead benchmark.
 Build and run:
 
 ```bash
-./build/overhead
+cmake --preset release
+cmake --build --preset release
+./build/release/benchmark/profkit_overhead
 ```
+
+---
 
 The benchmark measures:
 
@@ -374,41 +363,6 @@ The benchmark measures:
 * profiled loop execution time
 * approximate instrumentation overhead
 * average overhead per scope call
-
----
-
-# Project Structure
-
-```text
-profkit-cpp/
-├── profiler.cpp
-├── profkit.hpp
-├── profkit/
-│   └── profiler.hpp
-├── single_include/
-├── basic/
-├── multithread/
-├── multiple_sessions/
-├── empty_dump/
-├── overhead.cpp
-└── make_single_include.py
-```
-
----
-
-# Current Limitations
-
-Current version focuses on lightweight CPU scope profiling.
-
-Not implemented yet:
-
-* timeline tracing
-* Chrome Trace export
-* GPU profiling
-* inter-process profiling
-* lock-free event queues
-* memory profiling
-* asynchronous trace visualization
 
 ---
 
